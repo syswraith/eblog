@@ -17,7 +17,6 @@ This is a digital record of all of my conquests with computers, programming, mov
 - Solve CTFs
 - Do LFS
 - HAM
-- Live stream
 
 # What's new
 - Started solving ctfs! [[CTFs/CTFs]]
