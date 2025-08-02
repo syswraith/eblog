@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="">
+
+        <!-- Open Graph / Facebook / Discord -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="">
+        <meta property="og:description" content="">
+        <meta property="og:url" content="https://syswraith.github.io/elanor">
+        <meta property="og:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="">
+        <meta name="twitter:description" content="">
+        <meta name="twitter:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+        <meta property="twitter:domain" content="syswraith.github.io">
+        <meta property="twitter:url" content="https://syswraith.github.io/elanor">
+
+
+        <title></title>
+        <style>html{visibility: hidden;opacity:0;}</style>
+        <link rel="stylesheet" href="pygments.css" type="text/css">
+        <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css" media="print" onload="this.media='all'">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <script>
+            window.onload = () => { 
+                document.querySelector('html').style.visibility = "visible";
+                document.querySelector('html').style.opacity = 1;
+            };
+        </script>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ]
+                });
+            });
+        </script>
+
+        <noscript>
+            This page uses minimal and non-harmful JavaScript to avoid Flash of Unstyled Content. 
+            The source code is available at https://github.com/syswraith/elanor free for anyone to inspect or modify. 
+        </noscript>
+    </head>
+    <body>
+        <ul>
+<li>Easy </li>
+<li>Cryptography </li>
+<li>picoCTF2025</li>
+</ul>
+<hr />
+<ol>
+<li>Problem statement
+<img alt="Pasted image 20250521112630.png" src="images/Pasted image 20250521112630.png" />
+<img alt="Pasted image 20250521112739.png" src="images/Pasted image 20250521112739.png" /></li>
+<li>Install <a href="https://hashcat.net/hashcat/">hashcat</a> and <a href="https://github.com/brannondorsey/naive-hashcat/releases/download/data/rockyou.txt">rockyou.txt</a>. Save the identified hash in a file (here I'm saving it in the file <code>company.hash</code>).</li>
+<li>There's a ton of hashing algorithms that <code>hashcat</code> can crack. A list of them is available at https://hashcat.net/wiki/doku.php?id=example_hashes</li>
+<li>Start the bruteforce attack with the following command. The <code>--show</code> flag tells us which password matches the given hash.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>hashcat<span class="w"> </span>-m<span class="w"> </span><span class="m">0</span><span class="w"> </span>company.hash<span class="w"> </span>rockyou.txt<span class="w"> </span>--show
+</code></pre></div>
+
+<p><img alt="Pasted image 20250521113849.png" src="images/Pasted image 20250521113849.png" /></p>
+<ol>
+<li>On entering the hash, another hash is given to us. This should be fun :)
+<img alt="Pasted image 20250521114025.png" src="images/Pasted image 20250521114025.png" /></li>
+<li>On trying to break it with MD5, we get the following error. </li>
+</ol>
+<p><img alt="Pasted image 20250521114219.png" src="images/Pasted image 20250521114219.png" />
+7. Not MD5. Going back to the list mentioned in step 3. Maybe...SHA1? Yes!</p>
+<p><img alt="Pasted image 20250521114456.png" src="images/Pasted image 20250521114456.png" />
+<img alt="Pasted image 20250521114506.png" src="images/Pasted image 20250521114506.png" /></p>
+<ol>
+<li>Another hash!</li>
+</ol>
+<p><img alt="Pasted image 20250521114614.png" src="images/Pasted image 20250521114614.png" /></p>
+<p><img alt="this-is-where-the-fun-begins-star-wars.gif" src="images/this-is-where-the-fun-begins-star-wars.gif" /></p>
+<ol>
+<li>Counting the number of characters, we can see that it's 64 characters in length. Which means that we need an algorithm which outputs a 64 character hash. A quick search tells us that <code>SHA2-256</code> is what we're looking for.</li>
+</ol>
+<p><img alt="Pasted image 20250521115519.png" src="images/Pasted image 20250521115519.png" /></p>
+<ol>
+<li>And there we have it!</li>
+</ol>
+<p><img alt="Pasted image 20250521115614.png" src="images/Pasted image 20250521115614.png" /></p>
+    </body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="">
+
+        <!-- Open Graph / Facebook / Discord -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="">
+        <meta property="og:description" content="">
+        <meta property="og:url" content="https://syswraith.github.io/elanor">
+        <meta property="og:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="">
+        <meta name="twitter:description" content="">
+        <meta name="twitter:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+        <meta property="twitter:domain" content="syswraith.github.io">
+        <meta property="twitter:url" content="https://syswraith.github.io/elanor">
+
+
+        <title></title>
+        <style>html{visibility: hidden;opacity:0;}</style>
+        <link rel="stylesheet" href="pygments.css" type="text/css">
+        <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css" media="print" onload="this.media='all'">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <script>
+            window.onload = () => { 
+                document.querySelector('html').style.visibility = "visible";
+                document.querySelector('html').style.opacity = 1;
+            };
+        </script>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ]
+                });
+            });
+        </script>
+
+        <noscript>
+            This page uses minimal and non-harmful JavaScript to avoid Flash of Unstyled Content. 
+            The source code is available at https://github.com/syswraith/elanor free for anyone to inspect or modify. 
+        </noscript>
+    </head>
+    <body>
+        <p>Password math is mind-boggling. </p>
+<p>Say you have a password of about a that can range from 8 to 16 characters. 
+There are around 70 typeable keys on a standard QWERTY keyboard. Let's try to make sense of it using some good old series notation.
+$$
+\sum_{n=8}^{16} 70^n
+$$</p>
+<p>That gives us a compact notation to represent the entire keyspace in which the password might exist. To put it in numerical figures, it comes out to be somewhere around <em>337145672445227527877100000000</em>. </p>
+<p>That’s over a hundred octillion possibilities — more than the estimated number of sand grains on all the beaches of Earth, stars in the Milky Way, and Google searches ever made — combined. And thats just if we limit ourselves to the range of 8 to 16 character long passwords. Major services provide the range of 8 to 100 characters.</p>
+<p>So how do we- as mortals- make sense of this seemingly gigantic number? </p>
+<p>Well it's simple really. We focus on the things that are making these passwords- <em>people</em>. Man is the most exploitable part of the security ecosystem. About <strong><em>95%</em></strong> of the security faults happen today, happen because of man.</p>
+<p>How would a normal, ignorant person make his passwords? He/She would reuse the words, phrases and figures closest to him. The first few lines of <em><code>rockyou.txt</code></em> make this clear to us:
+<img alt="rock you txt" src="./images/wordlist-generator/rockyou.png" /></p>
+<blockquote>
+<p><em>"A man is defined by the company he keeps."</em></p>
+</blockquote>
+<p>The whole idea is based around the fact that through his social connections, there might be some words/characters whose combination makes up one of his passwords.  So we need to define a social structure of people that surrounds our target and utilize it to generate the wordlist that we'll eventually use in our attacks. We also need to sort the passwords from high probability to low probability so that we'll reduce time spent in brute-forcing the passwords.</p>
+<p>The source code for this project is over at https://github.com/syswraith/ryukendo. If you find something you want to talk about, do contribute by opening an issue or a pull request :)</p>
+<h1>General overview</h1>
+<p>In the <code>profiles</code> directory, we define any number of people related to our target. Here's an example:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;first_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Aarav&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;middle_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ishaan&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;last_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mehta&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;affiliation&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;ShadowPaws&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;mochi_zone&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;TeamNova&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;ravbyte&quot;</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">&quot;mutuals&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;intimacy&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;frequency_of_contact&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;shared_xp&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;time_known&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;numbers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="mi">17</span><span class="p">,</span><span class="w"> </span><span class="mi">204</span><span class="p">,</span><span class="w"> </span><span class="mi">88</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>There's two main phases I have implement the wordlist generator in: the generation phase and the sorting phase. </p>
+<h2>Generation phase:</h2>
+<ul>
+<li>In this phase, we focus purely on generating all the combinations of the strings present. In the JSON file, the fields <code>first_name</code>, <code>middle_name</code>, <code>last_name</code>, <code>affiliations</code>, <code>numbers</code> are taken into consideration. </li>
+<li>Additional special characters can also be added into the affiliations section since it contains anything and everything affiliated to the person. Think pop culture references, favorite book characters, commonly used phrases, nicknames, usernames; anything. </li>
+<li>Same with the numbers- dates, license plate numbers, phone numbers, pin codes, etc. Go crazy.</li>
+</ul>
+<h2>Sorting phase:</h2>
+<ul>
+<li>In this phase, we sort out the passwords. This is done with the help of filters such as <code>str_in</code> (string in) and <code>str_not_in</code> (string not in) to remove the passwords that are not likely to be in the list. </li>
+<li>Filters can be added in the <code>filters</code> directory. I'm working on some of them but at the time of writing, none of them are ready to be pushed into the repository. Hopefully in the future :) </li>
+<li>This is useful when you have a general idea of the password that the target is using i.e. maybe you've seen them enter a password and are sure that its of <em>n</em> length or has <em>x</em> character(s) in it. </li>
+<li>Another deciding factor is the <em>closeness</em> of the person to the target. We will calculate the <em>Euclidean distance</em> of the person from <em>maximum closeness</em>. This closeness is determined by factors like mutuals, intimacy, frequency of contact, shared experiences and time known. 
+$$
+\text{Euclidean\ Distance} = \sqrt{\sum_{a \in A} (\text{Max } a - a)^2}
+$$
+where A = { frequency of contact, shared experiences, mutuals, time known, intimacy }
+$$
+\text{Closeness} = \frac{1}{1 + \text{Euclidean\ Distance}}
+$$</li>
+</ul>
+<p>Ideal assumption is that a target's closeness to himself is <code>1.0</code>. That is the <strong>ideal closeness</strong>. Any person who comes closer to one is ranked higher in the list.</p>
+<h2>Implementation</h2>
+<ul>
+<li>Of course, the sorting phase should come before the generation phase. It makes sense to generate the highest probable passwords before the lowest ones, and sorting helps us do just that. That's why we make rounds through the files under profiles to get the closeness of each person, and generate them sequentially according to that order. </li>
+<li>My friend <a href="https://github.com/tervicke">tervicke</a> also advised me to use <strong>multi-threading</strong> to speed up the generation process. However, Python doesn't do true multi-threading- the implementation of threads in Python works <strong>concurrently</strong> rather than in parallel. And the <strong>Global Interpreter Lock (GIL)</strong> limits the number of threads operating on Python bytecode in order to protect memory, thus making it a huge bottleneck for performance. </li>
+<li>I have used multiprocessing instead, where each process gets its own GIL and cores to deal with generating passwords for each person. The time difference is of about 2 seconds, with with the script running faster with multi-processing than on a single-thread.</li>
+</ul>
+<h1>Usage</h1>
+<ul>
+<li>Clone the repositories locally. </li>
+<li>There are various make commands in the <code>Makefile</code>. The order they should be executed in is as follows:</li>
+<li><code>make connections</code> to define your target and connections</li>
+<li><code>make passwords</code> to start generatng the passwords</li>
+<li><code>make filter</code> to filter out passwords according to the filters</li>
+<li><code>make clear_cache</code> to clear the generated cache</li>
+<li><code>make clear_profiles</code> to clear the generated profiles</li>
+<li><code>make clear_wordlists</code> to clear the generated wordlists</li>
+</ul>
+<h1>Miscellaneous</h1>
+<ul>
+<li>
+<p>Here are some of the most popular wordlist generators that I've taken inspiration from: </p>
+<ul>
+<li>https://github.com/D4Vinci/elpscrk/</li>
+<li>https://github.com/r3nt0n/bopscrk/</li>
+<li>https://github.com/digininja/CeWL</li>
+</ul>
+</li>
+<li>
+<p>You can use CeWL to generate keywords that the person might be affiliated to and add them in the affiliations attribute of the JSON file.</p>
+</li>
+<li>Munging passwords is a job that is better done by existing tools. The <code>Hashcat</code> rule-engine in particular allows for a very good munging. If you want to use it, run the following command and use <code>hashcat_wordlist.txt</code> instead <code>wordlist.txt</code> of for sorting. Use any rules that you see fit, in this example I'll be using <a href="https://github.com/stealthsploit/OneRuleToRuleThemStill/"> stealthsploit's OneRuleToRuleThemStill</a>.</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>hashcat<span class="w"> </span>--force<span class="w"> </span>wordlist.txt<span class="w"> </span>-r<span class="w"> </span>OneRuleToRuleThemStill.rule<span class="w"> </span>--stdout<span class="w"> </span>&gt;<span class="w"> </span>hashcat_wordlist.txt
+</code></pre></div>
+    </body>
+</html>

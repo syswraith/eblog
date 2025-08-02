@@ -9,21 +9,21 @@
 
         <!-- Open Graph / Facebook / Discord -->
         <meta property="og:type" content="website">
-        <meta property="og:title" content="Home page">
+        <meta property="og:title" content="">
         <meta property="og:description" content="">
         <meta property="og:url" content="https://syswraith.github.io/elanor">
         <meta property="og:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image">
-        <meta name="twitter:title" content="Home page">
+        <meta name="twitter:title" content="">
         <meta name="twitter:description" content="">
         <meta name="twitter:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
         <meta property="twitter:domain" content="syswraith.github.io">
         <meta property="twitter:url" content="https://syswraith.github.io/elanor">
 
 
-        <title>Home page</title>
+        <title></title>
         <style>html{visibility: hidden;opacity:0;}</style>
         <link rel="stylesheet" href="pygments.css" type="text/css">
         <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css" media="print" onload="this.media='all'">
@@ -55,33 +55,40 @@
         </noscript>
     </head>
     <body>
-        <p>My name is <code>syswraith</code>. 
-I like computers, networking, pentesting, building stuff, breaking stuff, watching stuff, reading stuff and quoting stuff. 
-I'm a <code>vim</code> heretic and an <code>arch</code> (btw) user.</p>
-<p>This is a digital record of all of my conquests with computers, programming, movies, books, music, linguistics, cryptography, typography, et cetera. My musings are my own and may be wrong at times, for I am always looking to improve.</p>
-<ul>
-<li>Reading list =&gt; <a href="Reading.html">Reading</a> </li>
-<li>Watching list =&gt; <a href="Watching.html">Watching</a></li>
-<li>CTF =&gt; <a href="CTFs/CTFs.html">CTFs</a></li>
-<li>Life Updates =&gt; <a href="./Life Updates/Life Updates.html">Life Updates</a></li>
+        <ul>
+<li>Easy </li>
+<li>WebExploitation </li>
+<li>picoCTF2025 </li>
 </ul>
-<h1>Todo</h1>
-<ul>
-<li>Solve CTFs</li>
-<li>Do LFS</li>
-<li>HAM</li>
-<li>Live stream</li>
-</ul>
-<h1>What's new</h1>
-<ul>
-<li>Started solving ctfs! <a href="CTFs/CTFs.html">CTFs</a></li>
-<li><a href="Homebrewing a custom wordlist generator.html">Homebrewing a custom wordlist generator</a></li>
-</ul>
-<h1>Blog entries</h1>
-<ul>
-<li><a href="Dissecting the Anatomy of a Botnet.html">Dissecting the Anatomy of a Botnet</a></li>
-<li><a href="Scraping an Insecure Instance of Moodle.html">Scraping an Insecure Instance of Moodle</a></li>
-<li><a href="Homebrewing a custom wordlist generator.html">Homebrewing a custom wordlist generator</a></li>
-</ul>
+<hr />
+<ol>
+<li>
+<p>Start the Challenge</p>
+<p><img alt="Pasted image 20250529111924.png" src="images/Pasted image 20250529111924.png" /></p>
+</li>
+<li>
+<p>Some quick reconnaissance tells us that the website is running on a Flask server.</p>
+<p><img alt="Pasted image 20250529112327.png" src="images/Pasted image 20250529112327.png" /></p>
+</li>
+<li>
+<p>Putting in <code>&lt;script&gt;alert('Hello world')&lt;/script&gt;</code> tells us that the server is vulnerable to <strong>XSS injection</strong>.  </p>
+<p><img alt="Pasted image 20250529112244.png" src="images/Pasted image 20250529112244.png" /></p>
+</li>
+<li>
+<p>Here's where we go a bit off-road. The challenge tells us to use <strong>Server-side template injection</strong>. That's a good start as any. I googled <code>server side template injection python flask</code> and came across this page: https://portswigger.net/web-security/server-side-template-injection</p>
+</li>
+<li>
+<p>After trying all the templates, we can infer that the server is running a Jinja2 template engine.</p>
+<p><img alt="Pasted image 20250529112720.png" src="images/Pasted image 20250529112720.png" />
+<img alt="Pasted image 20250529112832.png" src="images/Pasted image 20250529112832.png" /></p>
+</li>
+<li>
+<p>I searched for <code>server side template injection jinja2 payloads</code> and came across this article https://www.onsecurity.io/blog/server-side-template-injection-with-jinja2/ <code>{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}</code> was the demo payload in the article. https://man7.org/linux/man-pages/man3/popen.3.html this tells us that <code>popen()</code> takes in strings and executes them as commands. Jackpot! RCE!</p>
+</li>
+<li>
+<p>However, we need it to execute a different command for us. Here's the on that gets us the flag.<code>{{request.application.__globals__.__builtins__.__import__('os').popen('grep -r "picoCTF"').read()}}</code> 
+    <img alt="Pasted image 20250529113636.png" src="images/Pasted image 20250529113636.png" /></p>
+</li>
+</ol>
     </body>
 </html>

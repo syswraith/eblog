@@ -1,26 +1,29 @@
 ---
-title: Elanor
-description: Elanor is a minimalistic static site generator for Markdown files. Written in Python.
-author: syswraith
-keywords: elanor,syswraith,github,static site generator,python,python3,classless,css,minimal
+title: Home page
 ---
 
-![Elanor icon](https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true)
+My name is `syswraith`. 
+I like computers, networking, pentesting, building stuff, breaking stuff, watching stuff, reading stuff and quoting stuff. 
+I'm a `vim` heretic and an `arch` (btw) user.
 
-# elanor
-Elanor is a minimalistic static site generator built for the Markdown I use.
+This is a digital record of all of my conquests with computers, programming, movies, books, music, linguistics, cryptography, typography, et cetera. My musings are my own and may be wrong at times, for I am always looking to improve.
 
-Here's what you need to get started
+- Reading list => [[Reading]] 
+- Watching list => [[Watching]]
+- CTF => [[CTFs/CTFs]]
+- Life Updates => [[./Life Updates/Life Updates]]
 
-- The installation and setup instructions are available here: [[./first install and setup.md]]
-- You can choose your themes here: [[./themes.md]]
+# Todo
+- Solve CTFs
+- Do LFS
+- HAM
+- Live stream
 
+# What's new
+- Started solving ctfs! [[CTFs/CTFs]]
+- [[Homebrewing a custom wordlist generator]]
 
-Elanor currently supports the following:
-
-- Basic markdown formatting
-- Syntax highlighting
-- KaTeX rendering
-- Frontmatter parsing
-
-A great thanks to all the maintainers and contributors to the [[./libraries used.md]] in this project.
+# Blog entries 
+- [[Dissecting the Anatomy of a Botnet]]
+- [[Scraping an Insecure Instance of Moodle]]
+- [[Homebrewing a custom wordlist generator]]
