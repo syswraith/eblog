@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="">
+
+        <!-- Open Graph / Facebook / Discord -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="">
+        <meta property="og:description" content="">
+        <meta property="og:url" content="https://syswraith.github.io/elanor">
+        <meta property="og:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="">
+        <meta name="twitter:description" content="">
+        <meta name="twitter:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+        <meta property="twitter:domain" content="syswraith.github.io">
+        <meta property="twitter:url" content="https://syswraith.github.io/elanor">
+
+
+        <title></title>
+        <style>html{visibility: hidden;opacity:0;}</style>
+        <link rel="stylesheet" href="pygments.css" type="text/css">
+        <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css" media="print" onload="this.media='all'">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <script>
+            window.onload = () => { 
+                document.querySelector('html').style.visibility = "visible";
+                document.querySelector('html').style.opacity = 1;
+            };
+        </script>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ]
+                });
+            });
+        </script>
+
+        <noscript>
+            This page uses minimal and non-harmful JavaScript to avoid Flash of Unstyled Content. 
+            The source code is available at https://github.com/syswraith/elanor free for anyone to inspect or modify. 
+        </noscript>
+    </head>
+    <body>
+        <ul>
+<li>Easy</li>
+<li>Forensics</li>
+<li>picoGymExclusive</li>
+</ul>
+<hr />
+<ol>
+<li>Download the compressed image</li>
+<li>Extract the image with the following command</li>
+</ol>
+<div class="codehilite"><pre><span></span><code>gunzip<span class="w"> </span>disko-1.dd.gz
+</code></pre></div>
+
+<p><img alt="Pasted image 20250521211118.png" src="images/Pasted image 20250521211118.png" />
+3. Use the <code>strings</code> command to find strings in the image. Additionally pipe the output to the <code>less</code> command to stop the overflowing of terminal buffer and to search for the flag.
+<img alt="Pasted image 20250521211205.png" src="images/Pasted image 20250521211205.png" /></p>
+    </body>
+</html>

